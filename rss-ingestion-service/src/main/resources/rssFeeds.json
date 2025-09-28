@@ -1,0 +1,26 @@
+[
+  {
+    "Publisher": "TIMES_OF_INDIA",
+    "Link": "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
+  },
+  {
+    "Publisher": "OP_INDIA",
+    "Link": "https://www.opindia.com/feed/"
+  },
+  {
+    "Publisher": "INDIA_TODAY",
+    "Link": "https://www.indiatoday.in/rss/1206578"
+  },
+  {
+    "Publisher": "REPUBLIC_BHARAT",
+    "Link": "https://www.republicbharat.com/rss/india.xml"
+  },
+  {
+    "Publisher": "THE_HINDU",
+    "Link": "https://www.thehindu.com/news/national/feeder/default.rss"
+  },
+  {
+    "Publisher": "INDIAN_EXPRESS",
+    "Link": "https://indianexpress.com/feed/"
+  }
+]

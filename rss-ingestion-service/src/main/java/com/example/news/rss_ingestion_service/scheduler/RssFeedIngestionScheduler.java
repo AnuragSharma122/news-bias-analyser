@@ -1,11 +1,11 @@
 package com.example.news.rss_ingestion_service.scheduler;
 
-import com.example.news.rss_ingestion_service.dto.ArticlePublisher;
 import com.example.news.rss_ingestion_service.dto.RssArticleDto;
 import com.example.news.rss_ingestion_service.dto.RssFeedDto;
-import com.example.news.rss_ingestion_service.infra.HTMLContentParser;
-import com.example.news.rss_ingestion_service.infra.HttpCommunicationService;
-import com.example.news.rss_ingestion_service.parser.HTMLArticleParserFactory;
+import com.example.news.rss_ingestion_service.kafka.KafkaIngestionService;
+import com.example.news.rss_ingestion_service.kafka.KafkaMessageBuilder;
+import com.example.news.rss_ingestion_service.services.ArticleContentExtractor;
+import com.example.news.rss_ingestion_service.services.RssFeedFetcher;
 import com.example.news.rss_ingestion_service.services.RssFeedsService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,31 +20,35 @@ import java.util.List;
 public class RssFeedIngestionScheduler {
 
     private final RssFeedsService rssFeedsService;
-    private final HttpCommunicationService httpCommunicationService;
-    private final HTMLContentParser htmlContentParser;
+    private final RssFeedFetcher rssFeedFetcher;
+    private final ArticleContentExtractor articleContentExtractor;
+    private final KafkaIngestionService kafkaIngestionService;
 
     @Scheduled(fixedRate = 600000L)
     public void rssFeedIngestionScheduler(){
         try {
-            List<RssFeedDto> rssFeedDtoList = rssFeedsService.getAllRssFeeds();
-            for(RssFeedDto rssFeed : rssFeedDtoList){
-                log.info("Fetching the rss feed {}", rssFeed.toString());
-                //fetch the xml data from link.
-                List<RssArticleDto> rssArticleDtoList = this.httpCommunicationService.getRssArticlesFromFeedLink(rssFeed.getRssLink());
-                log.info("Fetched {} rss Articles from {} publication",rssArticleDtoList.size(),rssFeed.getPublisher());
-                //Fetch the content from the link, create kafka message and ingest in kafka
-                for(RssArticleDto rssArticleDto : rssArticleDtoList){
-                    String Content = HTMLArticleParserFactory.getParser(ArticlePublisher.valueOf(rssFeed.getPublisher())).extractContentFromArticle(rssArticleDto.getLink());
-                    if(Content != null){
-                        log.info("Content : {}", Content);
-                        // ingest the article to kafka
-                        // mark the article as read in redis
-                    }
-                }
-            }
+            rssFeedsService.getAllRssFeeds().parallelStream().forEach(this::processFeed);
         }catch (Exception e){
             log.error(e.getMessage(),e);
         }
+    }
 
+    public void processFeed(RssFeedDto rssFeed){
+        log.info("Fetching the rss feed {}", rssFeed.toString());
+        List<RssArticleDto> rssArticleDtoList = this.rssFeedFetcher.getRssArticlesFromFeedLink(rssFeed.getRssLink());
+        log.info("Fetched {} rss Articles from {} publication",rssArticleDtoList.size(),rssFeed.getPublisher());
+        for(RssArticleDto rssArticleDto : rssArticleDtoList) {
+            String content = articleContentExtractor.extractArticleContent(rssFeed.getPublisher(), rssArticleDto.getLink());
+            KafkaMessageBuilder kafkaMessage = KafkaMessageBuilder
+                    .builder()
+                    .publisher(rssFeed.getPublisher())
+                    .title(rssArticleDto.getTitle())
+                    .link(rssArticleDto.getLink())
+                    .pubDate(rssArticleDto.getPubDate())
+                    .content(content)
+                    .guid(rssArticleDto.getGuidHash())
+                    .build();
+            kafkaIngestionService.ingest(kafkaMessage);
+        }
     }
 }

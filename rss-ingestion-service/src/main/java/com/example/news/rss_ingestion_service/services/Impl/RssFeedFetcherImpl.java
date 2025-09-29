@@ -1,7 +1,9 @@
-package com.example.news.rss_ingestion_service.infra;
+package com.example.news.rss_ingestion_service.services.Impl;
 
 import com.example.news.rss_ingestion_service.dto.RssArticleDto;
+import com.example.news.rss_ingestion_service.services.RssFeedFetcher;
 import com.example.news.rss_ingestion_service.util.HashUtil;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -21,19 +23,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-
-@Service
 @Slf4j
-public class HttpCommunicationService {
+@Service
+@AllArgsConstructor
+public class RssFeedFetcherImpl implements RssFeedFetcher {
 
     private final RestTemplate restTemplate;
 
-    public HttpCommunicationService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
-
     public List<RssArticleDto> getRssArticlesFromFeedLink(String feedUrl){
-        //return list of rssArticle by calling the feed link and parsing the XML response.
 
         List<RssArticleDto> articles = new ArrayList<>();
         try {
@@ -77,5 +74,4 @@ public class HttpCommunicationService {
         }
         return articles;
     }
-
 }

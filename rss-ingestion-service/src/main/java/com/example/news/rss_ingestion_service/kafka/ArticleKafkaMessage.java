@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class KafkaMessageBuilder {
+public class ArticleKafkaMessage {
     private String publisher;
     private String title;
     private String link;

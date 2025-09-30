@@ -3,7 +3,7 @@ package com.example.news.rss_ingestion_service.scheduler;
 import com.example.news.rss_ingestion_service.dto.RssArticleDto;
 import com.example.news.rss_ingestion_service.dto.RssFeedDto;
 import com.example.news.rss_ingestion_service.kafka.KafkaIngestionService;
-import com.example.news.rss_ingestion_service.kafka.KafkaMessageBuilder;
+import com.example.news.rss_ingestion_service.kafka.ArticleKafkaMessage;
 import com.example.news.rss_ingestion_service.services.ArticleContentExtractor;
 import com.example.news.rss_ingestion_service.services.RssFeedFetcher;
 import com.example.news.rss_ingestion_service.services.RssFeedsService;
@@ -39,7 +39,7 @@ public class RssFeedIngestionScheduler {
         log.info("Fetched {} rss Articles from {} publication",rssArticleDtoList.size(),rssFeed.getPublisher());
         for(RssArticleDto rssArticleDto : rssArticleDtoList) {
             String content = articleContentExtractor.extractArticleContent(rssFeed.getPublisher(), rssArticleDto.getLink());
-            KafkaMessageBuilder kafkaMessage = KafkaMessageBuilder
+            ArticleKafkaMessage kafkaMessage = ArticleKafkaMessage
                     .builder()
                     .publisher(rssFeed.getPublisher())
                     .title(rssArticleDto.getTitle())
@@ -48,7 +48,7 @@ public class RssFeedIngestionScheduler {
                     .content(content)
                     .guid(rssArticleDto.getGuidHash())
                     .build();
-            kafkaIngestionService.ingest(kafkaMessage);
+            kafkaIngestionService.sendMessage(kafkaMessage);
         }
     }
 }

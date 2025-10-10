@@ -1,0 +1,5 @@
+rootProject.name = 'news-bias-analyzer'
+
+include 'rss-ingestion-service'
+include 'llm-processor-service'
+include 'api-service'

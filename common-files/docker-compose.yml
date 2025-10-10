@@ -25,4 +25,4 @@ services:
       CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"  # Unique Kafka cluster ID.
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data:/var/lib/kafka/data  # Maps logs to local storage.
+      - /Users/anuragsharma/docker/data:/var/lib/kafka/data  # Maps logs to local storage.
